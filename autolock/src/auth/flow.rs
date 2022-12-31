@@ -66,7 +66,6 @@ impl  Auth{
       }))
       .header("Content-Type", "application/json")
       .header("Accept", "application/json, text/plain, */*")
-
       .send().await?;
 
       let json: &serde_json::Value  = &rsp_5.json().await?;
@@ -85,18 +84,14 @@ impl  Auth{
       
       let rsp_5 = client2
       .post("https://entitlements.auth.riotgames.com/api/token/v1")
-      .json(&json!({})
-  
-      )
+      .json(&json!({}))
       .header("Content-Type", "application/json")
       .bearer_auth(&nw_info.access_token)
       .send().await?;
   
       let json: &serde_json::Value  = &rsp_5.json().await?;
       nw_info.entitlement_token=json["entitlements_token"].to_string().replace("\"", "");
-
       let nw_info= self.get_user_info(nw_info);
-
 
       Ok(nw_info.await?)
     }
@@ -106,9 +101,7 @@ impl  Auth{
     
       let rsp_5 = client2
       .post("https://auth.riotgames.com/userinfo")
-      .json(&json!({})
-  
-      )
+      .json(&json!({}))
       .header("Content-Type", "application/json")
       .bearer_auth(&nw_info.access_token)
       // .headers(HeaderMap::from_iter(iter) headers)
@@ -125,7 +118,6 @@ impl  Auth{
       let delay = time::Duration::from_secs(3);
       let client3  = client::create_client().await?;
 
-
       loop{
         let rsp_6 = client3
         .get(format!("https://glz-ap-1.ap.a.pvp.net/pregame/v1/players/{}",&complete_info.puuid))
@@ -137,7 +129,6 @@ impl  Auth{
   
         let json: &serde_json::Value  = &rsp_6.json().await?;
         let match_id=json["MatchID"].to_string().replace("\"", "");
-
 
         match &match_id.as_str() {
           &"null" => println!("Waiting For a Match"),
@@ -161,9 +152,8 @@ impl  Auth{
         }
         thread::sleep(delay);
       }
-
+      
       Ok(complete_info)
-
     }
 
     pub async fn simplifier(&self,pattern:&String) -> Info{
