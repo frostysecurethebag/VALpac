@@ -43,34 +43,27 @@ impl  Auth{
           scope: "account openid".to_string(),
       };
 
-      client1
-      .post("https://auth.riotgames.com/api/v1/authorization")
-      .json(&data)
-      .header("Content-Type", "application/json")
-      .header("Accept", "application/json, text/plain, */*")
-      .send().await?;
-
-  
-      client1
-      .post("https://auth.riotgames.com/api/v1/authorization")
-      .json(&data)
-      .header("Content-Type", "application/json")
-      .header("Accept", "application/json, text/plain, */*")
-      .send().await?;
+        for _i in 0..2 {
+          client1
+            .post("https://auth.riotgames.com/api/v1/authorization")
+            .json(&data)
+            .header("Content-Type", "application/json")
+            .header("Accept", "application/json, text/plain, */*")
+            .send().await?;
+        }
 
   
       let rsp_5 = client1
-      .put("https://auth.riotgames.com/api/v1/authorization")
-      .json(&json!({
-          "type": "auth", "username": username, "password": password, "remember": true
-      }))
-      .header("Content-Type", "application/json")
-      .header("Accept", "application/json, text/plain, */*")
-      .send().await?;
+          .put("https://auth.riotgames.com/api/v1/authorization")
+          .json(&json!({
+              "type": "auth", "username": username, "password": password, "remember": true
+          }))
+          .header("Content-Type", "application/json")
+          .header("Accept", "application/json, text/plain, */*")
+          .send().await?;
 
       let json: &serde_json::Value  = &rsp_5.json().await?;
       let pattern=&json["response"]["parameters"]["uri"].to_string();
-      
       let nw_info:Info = self.simplifier(&pattern).await;
 
       // print!("{:?}",nw_info);
@@ -83,11 +76,11 @@ impl  Auth{
       let client2  = client::create_client().await?;
       
       let rsp_5 = client2
-      .post("https://entitlements.auth.riotgames.com/api/token/v1")
-      .json(&json!({}))
-      .header("Content-Type", "application/json")
-      .bearer_auth(&nw_info.access_token)
-      .send().await?;
+          .post("https://entitlements.auth.riotgames.com/api/token/v1")
+          .json(&json!({}))
+          .header("Content-Type", "application/json")
+          .bearer_auth(&nw_info.access_token)
+          .send().await?;
   
       let json: &serde_json::Value  = &rsp_5.json().await?;
       nw_info.entitlement_token=json["entitlements_token"].to_string().replace("\"", "");
@@ -100,12 +93,12 @@ impl  Auth{
       let client2  = client::create_client().await?;
     
       let rsp_5 = client2
-      .post("https://auth.riotgames.com/userinfo")
-      .json(&json!({}))
-      .header("Content-Type", "application/json")
-      .bearer_auth(&nw_info.access_token)
-      // .headers(HeaderMap::from_iter(iter) headers)
-      .send().await?;
+          .post("https://auth.riotgames.com/userinfo")
+          .json(&json!({}))
+          .header("Content-Type", "application/json")
+          .bearer_auth(&nw_info.access_token)
+          // .headers(HeaderMap::from_iter(iter) headers)
+          .send().await?;
 
       let json: &serde_json::Value  = &rsp_5.json().await?;
       nw_info.puuid=json["sub"].to_string().replace("\"", "");
@@ -120,11 +113,11 @@ impl  Auth{
 
       loop{
         let rsp_6 = client3
-        .get(format!("https://glz-ap-1.ap.a.pvp.net/pregame/v1/players/{}",&complete_info.puuid))
-        .json(&json!({}))
-        .header("X-Riot-Entitlements-JWT".to_string(), &complete_info.entitlement_token.to_owned())
-        .bearer_auth(&complete_info.access_token)
-        .send().await?;
+            .get(format!("https://glz-ap-1.ap.a.pvp.net/pregame/v1/players/{}",&complete_info.puuid))
+            .json(&json!({}))
+            .header("X-Riot-Entitlements-JWT".to_string(), &complete_info.entitlement_token.to_owned())
+            .bearer_auth(&complete_info.access_token)
+            .send().await?;
         // println!("{:?}",&complete_info);
   
         let json: &serde_json::Value  = &rsp_6.json().await?;
@@ -134,18 +127,18 @@ impl  Auth{
           &"null" => println!("Waiting For a Match"),
           _ => {
                 client3
-                .post(format!("https://glz-ap-1.ap.a.pvp.net/pregame/v1/matches/{}/select/{}",&match_id,&agent_id))
-                .json(&json!({}))
-                .header("X-Riot-Entitlements-JWT", &complete_info.entitlement_token)
-                .bearer_auth(&complete_info.access_token)
-                .send().await?;
+                    .post(format!("https://glz-ap-1.ap.a.pvp.net/pregame/v1/matches/{}/select/{}",&match_id,&agent_id))
+                    .json(&json!({}))
+                    .header("X-Riot-Entitlements-JWT", &complete_info.entitlement_token)
+                    .bearer_auth(&complete_info.access_token)
+                    .send().await?;
           
                 client3
-                .post(format!("https://glz-ap-1.ap.a.pvp.net/pregame/v1/matches/{}/lock/{}",&match_id,&agent_id))
-                .json(&json!({}))
-                .header("X-Riot-Entitlements-JWT", &complete_info.entitlement_token)
-                .bearer_auth(&complete_info.access_token)
-                .send().await?;
+                    .post(format!("https://glz-ap-1.ap.a.pvp.net/pregame/v1/matches/{}/lock/{}",&match_id,&agent_id))
+                    .json(&json!({}))
+                    .header("X-Riot-Entitlements-JWT", &complete_info.entitlement_token)
+                    .bearer_auth(&complete_info.access_token)
+                    .send().await?;
                 println!("Successfully Instalocked");
                 break;
               },
